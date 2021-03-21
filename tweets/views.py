@@ -6,26 +6,54 @@ from django.http import HttpResponse
 from django.views.generic import View
 
 
-from user_profile.models import User
+from user_profile.models import User, UserFollower
 from .models import HashTag, Tweets
-from .forms import SearchForm, TweetForm
+from .forms import SearchForm, SearchHashTagForm, TweetForm
 
 class Index(View):
     def get(self, request):
         
         context = {}
         return render(request, 'base.html', context)
-    
+
+class UserRedirect(View):
+    def get(self, request):
+        return HttpResponseRedirect('/user/'+request.user.username)    
 
 class Profile(View):
     def get(self, request, username):
-        user = User.objects.get(username=username)
-        tweets = Tweets.objects.filter(user=user)
-        form = TweetForm()
+        params = dict()
+        userProfile = User.objects.get(username=username)
+        userFollower = UserFollower.objects.get(user=userProfile)
+        if userFollower.follower.filter(user=request.user.username).exists():
+            params['following'] = True
+        else:
+            params['following'] = False
         
-        context = {'user': user, 'tweets': tweets, 'form': form}
+        
+        tweets = Tweets.objects.filter(user=userProfile).order_by('-created')
+        form = TweetForm(initial={'country': 'Global'})
+        search_form = SearchForm()
+        
+        context = {'profile': userProfile, 'tweets': tweets, 'form': form, 'search_form': search_form}
         return render(request, 'tweets/profile.html', context)
 
+    def post(self, request, username):
+        follow = request.POST['follow']
+        user = User.objects.get(username=request.user.username)
+        userProfile = User.objects.get(username=username)
+        userFollower, status = UserFollower.objects.get_or_create(user=userProfile)
+        if follow == 'true':
+            userFollower.followers.add(user)
+        else:
+            userFollower.followers.remove(user)
+        return HttpResponse(json.dumps(""), content_type='apllication/json')
+    
+class MostFollowedUsers(View):
+    def get(self, request):
+        userFollowers = UserFollower.objects.order_by('-count')
+        context = {'userFollowers': userFollowers}
+        return render(request, 'tweets/user.html', context)    
         
 class PostTweet(View):
     def post(self, request, username):
@@ -67,3 +95,27 @@ class Search(View):
             return HttpResponse(json.dumps(return_str), content_type='application/json')
         else:
             return HttpResponseRedirect('search_tweet')
+        
+class SearchHashTag(View):
+    def get(self, request):
+        form = SearchHashTagForm()
+        context = {'search': form}
+        return render(request, 'search_hashtag.html', context)
+
+    def post(self, request):
+        query = request.POST['query']
+        form = SearchHashTagForm()
+        hashtags = HashTag.objects.filter(name__contains=query)
+        context = {'hashtags': hashtags, 'search': form}
+        return render(request, 'search_hashtag.html', context)
+
+
+class HashTagJson(View):
+    def get(self, request):
+        query = request.GET['query']
+        hashtaglist = []
+        hashtags = HashTag.objects.filter(name__icontains=query)
+        for hashtag in hashtags:
+            temp = {'query': hashtag.name}
+            hashtaglist.append(temp)
+        return HttpResponse(json.dumps(hashtaglist), content_type="application/json")

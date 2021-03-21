@@ -11,3 +11,14 @@ class User(AbstractBaseUser):
     
     def __unicode__(self):
         return self.username
+    
+
+class UserFollower(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    count = models.IntegerField(default=1)
+    followers = models.ManyToManyField(User, related_name='followers')
+    
+    def __str__(self):
+        return self.user, str(self.count)
+    

@@ -12,6 +12,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Redirects
+LOGIN_REDIRECT_URL = 'profile'
+LOGIN_URL = 'login'
+
 
 # Application definition
 
