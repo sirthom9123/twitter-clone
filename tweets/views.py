@@ -1,11 +1,14 @@
+import json
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.views.generic import View
 
+
 from user_profile.models import User
 from .models import HashTag, Tweets
-from .forms import TweetForm
+from .forms import SearchForm, TweetForm
 
 class Index(View):
     def get(self, request):
@@ -18,7 +21,8 @@ class Profile(View):
     def get(self, request, username):
         user = User.objects.get(username=username)
         tweets = Tweets.objects.filter(user=user)
-        form = TweetForm(self.request.POST or None)
+        form = TweetForm()
+        
         context = {'user': user, 'tweets': tweets, 'form': form}
         return render(request, 'tweets/profile.html', context)
 
@@ -43,3 +47,23 @@ class HashTagCloud(View):
         hastag = HashTag.objects.get(name=hashtag)
         context = {'tweets': hashtag.tweet}
         return render(request, 'hastag.html', context)
+    
+
+class Search(View):
+    def get(self, request):
+        form = SearchForm()
+        
+        context ={'form': form}
+        return render(request, 'tweets/search.html', context)
+        
+        
+    def post(self, request):
+        form = SearchForm(request.POST)
+        if form.is_valid():
+            query = form.cleaned_data['query']
+            tweets = Tweets.objects.filter(text__icontains=query)
+            context = {'query': query, 'tweets': tweets}
+            return_str = render_to_string('partials/_tweets_search.html', context)
+            return HttpResponse(json.dumps(return_str), content_type='application/json')
+        else:
+            return HttpResponseRedirect('search_tweet')

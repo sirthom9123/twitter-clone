@@ -1,0 +1,14 @@
+{% for tweet in tweets %}
+<div class="card">
+    <div class="card-body">
+        <span>{{tweet.text}}</span>
+    </div>
+</div>
+{% endfor %}
+{% if not tweets %}
+<div class="card">
+    <div class="card-body">
+        <span>No tweets found</span>
+    </div>
+</div>
+{% endif %}
