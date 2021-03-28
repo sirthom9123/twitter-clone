@@ -44,7 +44,7 @@ class Profile(View):
         userProfile = User.objects.get(username=username)
         try:
             userFollower = UserFollower.objects.get(user=userProfile)
-            if userFollower.follower.filter(user=request.user.username).exists():
+            if userFollower.followers.filter(user=request.user.username).exists():
                 params['following'] = True
             else:
                 params['following'] = False
@@ -55,7 +55,12 @@ class Profile(View):
         form = TweetForm(initial={'country': 'Global'})
         search_form = SearchForm()
         
-        context = {'profile': userProfile, 'tweets': tweets, 'form': form, 'search_form': search_form}
+        context = {
+            'profile': userProfile, 
+            'tweets': tweets, 
+            'form': form, 
+            'search_form': search_form
+            }
         return render(request, 'tweets/profile.html', context)
 
     def post(self, request, username):
@@ -63,6 +68,8 @@ class Profile(View):
         user = User.objects.get(username=request.user.username)
         userProfile = User.objects.get(username=username)
         userFollower, status = UserFollower.objects.get_or_create(user=userProfile)
+        userFollower.count += 1
+        userFollower.save()
         if follow == 'true':
             userFollower.followers.add(user)
         else:
@@ -77,7 +84,7 @@ class MostFollowedUsers(View):
         
 class PostTweet(View):
     def post(self, request, username):
-        form = TweetForm(self.request.POST)
+        form = TweetForm(self.request.POST or None)
         if form.is_valid():
             user = User.objects.get(username=username)
             tweet = Tweets(text=form.cleaned_data['text'], user=user, country=form.cleaned_data['country'])
@@ -87,7 +94,7 @@ class PostTweet(View):
                 if word[0] == '#':
                     hashtag, created = HashTag.objects.get_or_create(name=word[1:])
                     hashtag.tweet.add(tweet)
-                return HttpResponseRedirect('profile'+username)
+                return HttpResponseRedirect('/user/'+username)
             
 
 class HashTagCloud(View):

@@ -2,13 +2,12 @@
 {% load static %}
 {% block navbar %}
 <p class="navbar-text navbar-left">
-    <span class="glyphicon glyphicon-user"></span>
-    {{ profile.username }}'s Profile Page
+    <span class="glyphicon glyphicon-user"></span> {{ profile.username }}'s Profile Page
     {% if profile.username != user.username %} 
     <span class="btn btn-xs btn-default follow-btn" title="Click to follow {{profile.username}}" value="{{ following }}" username="{{ profile.username }}">
         <span class="glyphicon glyphicon-plus"></span> 
         <span class="follow-text">
-            {{ following|yesno:"Unfollow, Follow" }}
+            {{ following|yesno:"Unfollow,Follow" }}
         </span>
     </span>
     {% endif %}
@@ -18,7 +17,7 @@
 {% block content %}
 <div class="row clearfix">
     <div class="col-md-12 mt-3">
-        <form action="post/" method="POST" id='search-form'>
+        <form method="POST" id='search-form' action="{% url 'post_tweet' user.username %}">
             {% csrf_token %}
             <div class="col-md-8 col-md-offset-2 fieldWrapper">
                 {{form.text.erros}}
@@ -27,7 +26,7 @@
             </div>
             <br>
             <div class="input-group-btn">
-                <input type="submit" value="POST">
+                <input type="submit" value="POST" class="btn btn-primary" >
             </div>
         </form>
     </div>
