@@ -2,11 +2,14 @@ import json
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import View
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.contrib.auth.models import User
 from validate_email import validate_email
 from django.contrib import messages
 from django.contrib import auth
+from django.template.loader import render_to_string
+from django.views.generic import View
+from django.template import Context
 from django.core.mail import EmailMessage
 from django.utils.encoding import force_text, force_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -14,7 +17,11 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.conf import settings
 import threading
+import random
+import string
 
+from .models import Invitation
+from .forms import InvitationForm
 from .utils import token_generator
 
 
@@ -247,6 +254,45 @@ class CompletePasswordReset(View):
             return render(request, 'authentication/set_new_password.html', context)
             
         
+def create_ref_code():
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=20))
+
         
+class Invite(View):
+    def get(self, request):
+        success = request.GET.get('success')
+        email = request.GET.get('email')
+        invite = InvitationForm()
+        context = {'success': success, 'invite': invite, 'email': email}
+        return render(request, 'tweets/email.html', context)
+    
+    def post(self, request):
+        form = InvitationForm(self.request.POST)
+        user = User.objects.get(username=request.user.username)
         
-   
+        if form.is_valid():
+            domain = get_current_site(request).domain
+            email = form.cleaned_data['email']
+            subject = 'Invitation to join MyTweet App'
+            sender_name = request.user.username
+            sender_email = request.user.email
+            invite_code = create_ref_code()
+            invite_url = f'http://{domain}/authenticate/register/'
+            
+            context = {'sender_name': sender_name, 'sender_email': sender_email, 'email': email, 'link': invite_url}
+            invite_body = render_to_string('partials/_invite_email_template.html', context)
+            msg = EmailMessage(subject, 
+                               invite_body, 
+                               settings.EMAIL_HOST_USER, 
+                               [email], 
+                               cc=[settings.EMAIL_HOST_USER]
+                               )
+            
+            invitation = Invitation()
+            invitation.email = email
+            invitation.code = invite_code
+            invitation.sender = user
+            invitation.save()
+            EmailThread(msg).start()
+            messages.success(self.request, f'Invitation sent to {email}.')
+            return HttpResponseRedirect('/')
