@@ -15,3 +15,5 @@ class SearchForm(forms.Form):
 class SearchHashTagForm(forms.Form):
     query = forms.CharField(label='Enter keyword to search hashTag for',
                             widget=forms.TextInput(attrs={'size': 32, 'class':'form-control search-hash-tag-query typeahead'}))
+    
+    

@@ -1,4 +1,5 @@
 {% extends 'base.html' %} 
+{% load static %}
 {% block navbar %}
 <p class="navbar-text navbar-left">
     <span class="glyphicon glyphicon-user"></span>
@@ -12,15 +13,11 @@
     </span>
     {% endif %}
 </p>
-<p class="navbar-text navbar-right">
-    <span class="glyphicon glyphicon-user"></span>
-    {{ user.username }}
-    
-</p>
+
 {% endblock %}
 {% block content %}
 <div class="row clearfix">
-    <div class="col-md-12">
+    <div class="col-md-12 mt-3">
         <form action="post/" method="POST" id='search-form'>
             {% csrf_token %}
             <div class="col-md-8 col-md-offset-2 fieldWrapper">
@@ -28,6 +25,7 @@
                 {{form.text}}
                 {{form.country.as_hidden}}
             </div>
+            <br>
             <div class="input-group-btn">
                 <input type="submit" value="POST">
             </div>
@@ -48,5 +46,5 @@
 {% endblock %}
 
 {% block js %} 
-<script src="{% static 'profile.js' %}"></script>
+<script src="{% static 'js/profile.js' %}"></script>
 {% endblock %}

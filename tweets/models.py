@@ -1,9 +1,9 @@
 from django.db import models
-from user_profile.models import User
+from django.contrib.auth.models import User
 
 
 class Tweets(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_profile')
     text = models.CharField(max_length=160)
     created = models.DateTimeField(auto_now_add=True)
     country = models.CharField(max_length=30)

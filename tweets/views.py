@@ -4,32 +4,52 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.views.generic import View
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.contrib.auth.models import User
 
-
-from user_profile.models import User, UserFollower
 from .models import HashTag, Tweets
 from .forms import SearchForm, SearchHashTagForm, TweetForm
+from user_profile.models import UserFollower
+import logging
+logger = logging.getLogger('django')
+
+TWEET_PER_PAGE = 5
+
+
+class LoginRequiredMixin(object):
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
 
 class Index(View):
     def get(self, request):
         
-        context = {}
+        context = {'name': 'Django'}
         return render(request, 'base.html', context)
 
 class UserRedirect(View):
     def get(self, request):
-        return HttpResponseRedirect('/user/'+request.user.username)    
-
+        if request.user.is_authenticated():
+            logger.info('authorized user')
+            return HttpResponseRedirect('/user/'+request.user.username)    
+        else:
+            logger.info('unauthorized user')
+            return HttpResponseRedirect('login')
+        
+        
 class Profile(View):
     def get(self, request, username):
         params = dict()
         userProfile = User.objects.get(username=username)
-        userFollower = UserFollower.objects.get(user=userProfile)
-        if userFollower.follower.filter(user=request.user.username).exists():
-            params['following'] = True
-        else:
-            params['following'] = False
-        
+        try:
+            userFollower = UserFollower.objects.get(user=userProfile)
+            if userFollower.follower.filter(user=request.user.username).exists():
+                params['following'] = True
+            else:
+                params['following'] = False
+        except:
+            userFollower = []
         
         tweets = Tweets.objects.filter(user=userProfile).order_by('-created')
         form = TweetForm(initial={'country': 'Global'})
@@ -51,9 +71,9 @@ class Profile(View):
     
 class MostFollowedUsers(View):
     def get(self, request):
-        userFollowers = UserFollower.objects.order_by('-count')
+        userFollowers = UserFollower.objects.order_by('-count')[:2]
         context = {'userFollowers': userFollowers}
-        return render(request, 'tweets/user.html', context)    
+        return render(request, 'tweets/users.html', context)    
         
 class PostTweet(View):
     def post(self, request, username):
