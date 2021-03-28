@@ -15,18 +15,17 @@
 
 {% endblock %}
 {% block content %}
-<div class="row clearfix">
-    <div class="col-md-12 mt-3">
+<div class="row clearfix mt-4">
+    <div class="col-md-10 col-md-offset-3 column">
         <form method="POST" id='search-form' action="{% url 'post_tweet' user.username %}">
             {% csrf_token %}
-            <div class="col-md-8 col-md-offset-2 fieldWrapper">
+            <div class="input-group">
                 {{form.text.erros}}
                 {{form.text}}
                 {{form.country.as_hidden}}
-            </div>
-            <br>
-            <div class="input-group-btn">
-                <input type="submit" value="POST" class="btn btn-primary" >
+                <span class="input-group-btn">
+                    <input type="submit" value="POST" class="btn btn-primary" >
+                </span>
             </div>
         </form>
     </div>
@@ -41,7 +40,26 @@
             <hr>
         {% endfor %}
     </div>
+    <div class="pagination-container col-md-12">
+        <div class="col-md-6">
+            Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </div>
+        <div class="col-md-12">
+            <ul class="pagination align-right float-right mr-auto">
+                {% if page_obj.has_previous %}
+                <li {% if page_obj.number == 1 %} class="page-item active" {% endif %}><a class="page-link" href="?page=1">&laquo; 1</a></li>
+                <li class="page-item"> <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                {% endif %}
+        
+                {% if page_obj.has_next %}
+                <li class="page-item"> <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                <li class="page-item"> <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages}} &raquo;</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div> 
 </div>
+
 {% endblock %}
 
 {% block js %} 

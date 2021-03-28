@@ -7,6 +7,7 @@ from django.views.generic import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 
 from .models import HashTag, Tweets
 from .forms import SearchForm, SearchHashTagForm, TweetForm
@@ -14,7 +15,6 @@ from user_profile.models import UserFollower
 import logging
 logger = logging.getLogger('django')
 
-TWEET_PER_PAGE = 5
 
 
 class LoginRequiredMixin(object):
@@ -54,12 +54,16 @@ class Profile(View):
         tweets = Tweets.objects.filter(user=userProfile).order_by('-created')
         form = TweetForm(initial={'country': 'Global'})
         search_form = SearchForm()
-        
+        paginator = Paginator(tweets, 6)
+        page = request.GET.get('page')
+        page_obj = Paginator.get_page(paginator, page)
+
         context = {
             'profile': userProfile, 
             'tweets': tweets, 
             'form': form, 
-            'search_form': search_form
+            'search_form': search_form,
+            'page_obj': page_obj,
             }
         return render(request, 'tweets/profile.html', context)
 
