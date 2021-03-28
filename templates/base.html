@@ -6,6 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Twitter</title>
+    <style type='text/css'>
+        #footer {
+            margin-top: 2em;
+            text-align: center;
+            }
+    </style>
     {% block css %}
     {% endblock %}
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" media="screen" />
@@ -24,7 +30,7 @@
         {% block content %}
         {% endblock %}
     </div>
-    <nav class="navbar navbar-light bg-light navbar-fixed-bottom" role="navigation">
+    <nav class="navbar navbar-light bg-light navbar-fixed-bottom" id="footer" role="navigation">
         <a href="#" class="navbar-brand">MyTweets</a>
         <p class='navbar-text navbar-right'>Footer</p>
     </nav>

@@ -8,7 +8,7 @@ class UserFollower(models.Model):
     followers = models.ManyToManyField(User, related_name='followers')
     
     def __str__(self):
-        return self.user, str(self.count)
+        return f'{self.user}, {self.count}'
     
 class Invitation(models.Model):
     name = models.CharField(max_length=50)
