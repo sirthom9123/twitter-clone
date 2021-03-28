@@ -285,7 +285,6 @@ class Invite(View):
                                invite_body, 
                                settings.EMAIL_HOST_USER, 
                                [email], 
-                               cc=[settings.EMAIL_HOST_USER]
                                )
             
             invitation = Invitation()

@@ -10,5 +10,7 @@ class TweetAdmin(admin.ModelAdmin):
 class HashTagAdmin(admin.ModelAdmin):
     list_display = ['name',]   
 
+
+admin.site.index_template = 'memcache_status/admin_index.html'
 admin.site.register(Tweets, TweetAdmin)
 admin.site.register(HashTag, HashTagAdmin)
